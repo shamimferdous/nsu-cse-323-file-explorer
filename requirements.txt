@@ -1,1 +1,4 @@
 tk
+Django==4.0.2
+djangorestframework==3.13.1
+django-cors-headers==3.7.0
