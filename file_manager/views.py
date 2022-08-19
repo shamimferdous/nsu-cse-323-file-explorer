@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import shutil
+import json
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -64,4 +65,11 @@ def move_file_or_folder(request):
 
     shutil.move(original_path, destination_path)
 
+    return Response(status=HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_path_stat(request):
+    path = request.query_params.get('path')
+    print(os.stat(path))
     return Response(status=HTTP_200_OK)
