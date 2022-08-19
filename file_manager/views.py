@@ -1,3 +1,67 @@
-from django.shortcuts import render
+import os
+from pathlib import Path
+import shutil
 
-# Create your views here.
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework.status import HTTP_200_OK
+
+
+@api_view(['GET'])
+def get_directory(request):
+    params = request.query_params
+    current_dir = str(Path.home())
+    if params.get('dir'):
+        current_dir = params.get('dir')
+
+    return Response(
+        {
+            'dir': current_dir,
+            'list': os.listdir(current_dir)
+        }
+        , status=HTTP_200_OK)
+
+
+@api_view(['GET'])
+def open_file(request):
+    file_path = request.query_params.get('path')
+    print(file_path)
+    os.system('open ' + file_path)
+
+    return Response(status=HTTP_200_OK)
+
+
+@api_view(['POST'])
+def rename_file_or_folder(request):
+    params = request.query_params
+    old_path = params.get('old_path')
+    new_path = params.get('new_path')
+
+    os.rename(old_path, new_path)
+
+    return Response(status=HTTP_200_OK)
+
+
+@api_view(['POST'])
+def copy_file_or_folder(request):
+    params = request.query_params
+    original_path = params.get('original_path')
+    destination_path = params.get('destination_path')
+
+    if os.path.isfile(original_path):
+        shutil.copy(original_path, destination_path)
+    else:
+        shutil.copytree(original_path, destination_path)
+
+    return Response(status=HTTP_200_OK)
+
+
+@api_view(['POST'])
+def move_file_or_folder(request):
+    params = request.query_params
+    original_path = params.get('original_path')
+    destination_path = params.get('destination_path')
+
+    shutil.move(original_path, destination_path)
+
+    return Response(status=HTTP_200_OK)
