@@ -23,7 +23,7 @@ def get_directory(request):
         , status=HTTP_200_OK)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def open_file(request):
     file_path = request.query_params.get('path')
     print(file_path)
@@ -72,4 +72,8 @@ def move_file_or_folder(request):
 def get_path_stat(request):
     path = request.query_params.get('path')
     print(os.stat(path))
-    return Response(status=HTTP_200_OK)
+    s_obj = os.stat(path)
+    # print(type(os.stat(path)))
+    print({k: getattr(s_obj, k) for k in dir(s_obj) if k.startswith('st_')})
+    return Response({k: getattr(s_obj, k) for k in dir(s_obj) if k.startswith('st_')}
+    ,status=HTTP_200_OK)
