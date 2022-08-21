@@ -5,12 +5,13 @@ import moment from 'moment';
 
 //importing icons
 import { FiMoreHorizontal } from 'react-icons/fi';
-import { Button, Popover } from 'antd';
+import { Button, Input, Popover } from 'antd';
 
 
-const DirItem = ({ item, dir, setDir }) => {
+const DirItem = ({ item, dir, setDir, setRefresh, setCopyPath, setMovePath }) => {
     const [stat, setStat] = useState([]);
     const [type, setType] = useState('');
+    const [showRename, setShowRename] = useState(false);
 
     function bytesToSize(bytes) {
         var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
@@ -26,19 +27,51 @@ const DirItem = ({ item, dir, setDir }) => {
         })
     }, [item]);
 
-    const handleClickEvent = () => {
-        if (type === 'folder') {
-            setDir(dir + '/' + item);
-        } else {
-            axios.post(`/file-manager/open-file?path=${dir}/${item}`);
+    const handleClickEvent = e => {
+        switch (e.detail) {
+            case 1:
+                break;
+            case 2:
+                if (type === 'folder') {
+                    setDir(dir + '/' + item);
+                } else {
+                    axios.post(`/file-manager/open-file?path=${dir}/${item}`);
+                }
+                break;
+            case 3:
+                console.log("triple click");
+                break;
+            default:
+                break;
         }
+
+    }
+
+    const renameDirItem = newName => {
+        axios.post(`/file-manager/rename`, {}, {
+            params: {
+                old_path: dir + "/" + item,
+                new_path: dir + "/" + newName,
+            }
+        }).then(response => {
+            setRefresh(Math.random());
+            setShowRename(false);
+        });
     }
 
     return (
         <tr className={styles.dirItem} onClick={handleClickEvent}>
-            <td style={{ width: '500px' }}>{item}</td>
+            <td style={{ width: '500px' }}>
+                {
+                    showRename ?
+                        <Input defaultValue={item} onPressEnter={(e) => renameDirItem(e.target.value)} />
+                        :
+                        <span className={styles.dirItemName}>{item}</span>
+                }
+            </td>
             <td style={{ width: '300px' }}>
-                {moment(stat.st_mtime).format('MMMM DD Y - LT')}
+                {/* {moment(stat.st_birthtime).format('MMM DD YYYY - LT')} */}
+                {moment(stat.st_mtime).format('MMM DD YYYY - LT')}
             </td>
             <td>
                 {item.substring(1).includes('.') ? item.split('.')[item.split('.').length - 1] + ' File' : 'Folder'}
@@ -47,9 +80,12 @@ const DirItem = ({ item, dir, setDir }) => {
             <td>
                 <Popover content={
                     <div className={styles.actions}>
-                        <span style={{ marginBottom: '1rem', display: 'block' }}>Copy {type}</span>
+                        <span onClick={() => setShowRename(true)} style={{ marginTop: '0rem' }}>Rename {type}</span>
 
-                        <span>Move {type}</span>
+                        <span onClick={() => setCopyPath(dir + "/" + item)}>Copy {type}</span>
+
+                        <span onClick={() => setMovePath(dir + "/" + item)}>Move {type}</span>
+
                     </div>
                 } title="Actions">
                     <FiMoreHorizontal size={20} />
